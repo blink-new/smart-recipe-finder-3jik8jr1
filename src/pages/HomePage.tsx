@@ -13,9 +13,10 @@ import { FeaturePoll } from '../components/FeaturePoll'
 interface HomePageProps {
   user: User
   onNavigate: (page: AppPage) => void
+  blink: any
 }
 
-export function HomePage({ user, onNavigate }: HomePageProps) {
+export function HomePage({ user, onNavigate, blink }: HomePageProps) {
   const { ingredients, pantryItems } = usePantry(user)
   const { favoriteRecipeIds } = useFavorites(user)
   const [featuredRecipes, setFeaturedRecipes] = useState<Recipe[]>([])
@@ -348,7 +349,7 @@ export function HomePage({ user, onNavigate }: HomePageProps) {
 
       {/* Feature Poll */}
       <div className="mt-12">
-        <FeaturePoll userId={user.id} />
+        <FeaturePoll userId={user.id} blink={blink} />
       </div>
     </div>
   )

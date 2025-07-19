@@ -5,12 +5,6 @@ import { Button } from './ui/button'
 import { Progress } from './ui/progress'
 import { Badge } from './ui/badge'
 import { useToast } from '../hooks/use-toast'
-import { createClient } from '@blinkdotnew/sdk'
-
-const blink = createClient({
-  projectId: 'smart-recipe-finder-3jik8jr1',
-  authRequired: true
-})
 
 interface PollOption {
   id: string
@@ -54,19 +48,24 @@ const pollOptions: PollOption[] = [
 
 interface FeaturePollProps {
   userId: string
+  blink: any
 }
 
-export function FeaturePoll({ userId }: FeaturePollProps) {
+export function FeaturePoll({ userId, blink }: FeaturePollProps) {
   const [userVote, setUserVote] = useState<string | null>(null)
   const [pollResults, setPollResults] = useState<PollResults>({})
   const [totalVotes, setTotalVotes] = useState(0)
   const [isLoading, setIsLoading] = useState(true)
   const [isVoting, setIsVoting] = useState(false)
+  const [hasError, setHasError] = useState(false)
   const { toast } = useToast()
 
   const loadPollData = useCallback(async () => {
+    if (!blink || !userId) return
+    
     try {
       setIsLoading(true)
+      setHasError(false)
       
       // Load all votes for this specific poll
       const votes = await blink.db.poll_votes.list({
@@ -92,14 +91,30 @@ export function FeaturePoll({ userId }: FeaturePollProps) {
       
     } catch (error) {
       console.error('Error loading poll data:', error)
+      setHasError(true)
     } finally {
       setIsLoading(false)
     }
-  }, [userId])
+  }, [userId, blink])
 
   useEffect(() => {
-    loadPollData()
-  }, [loadPollData])
+    if (blink && userId) {
+      loadPollData()
+    }
+  }, [loadPollData, blink, userId])
+
+  // Early return if no blink client or userId (after all hooks)
+  if (!blink || !userId) {
+    return (
+      <Card className="w-full">
+        <CardContent className="p-6">
+          <p className="text-muted-foreground text-center">
+            Feature poll is temporarily unavailable.
+          </p>
+        </CardContent>
+      </Card>
+    )
+  }
 
   const handleVote = async (optionId: string) => {
     if (isVoting) return
@@ -162,6 +177,27 @@ export function FeaturePoll({ userId }: FeaturePollProps) {
 
   const getVoteCount = (optionId: string) => {
     return pollResults[optionId] || 0
+  }
+
+  if (hasError) {
+    return (
+      <Card className="w-full">
+        <CardContent className="p-6">
+          <div className="text-center">
+            <p className="text-muted-foreground mb-4">
+              Unable to load feature poll at the moment.
+            </p>
+            <Button 
+              variant="outline" 
+              onClick={() => loadPollData()}
+              disabled={isLoading}
+            >
+              Try Again
+            </Button>
+          </div>
+        </CardContent>
+      </Card>
+    )
   }
 
   if (isLoading) {

@@ -1,5 +1,4 @@
 import { useState, useEffect } from 'react'
-import { createClient } from '@blinkdotnew/sdk'
 import { Toaster } from '@/components/ui/sonner'
 import { Navigation } from '@/components/Navigation'
 import { HomePage } from '@/pages/HomePage'
@@ -9,11 +8,7 @@ import { SavedMealsPage } from '@/pages/SavedMealsPage'
 import { GroceryListPage } from '@/pages/GroceryListPage'
 import { ProfilePage } from '@/pages/ProfilePage'
 import { LoadingSpinner } from '@/components/LoadingSpinner'
-
-const blink = createClient({
-  projectId: 'smart-recipe-finder-3jik8jr1',
-  authRequired: true
-})
+import { blink } from '@/blink/client'
 
 export type User = {
   id: string
@@ -85,7 +80,7 @@ function App() {
 
     switch (currentPage) {
       case 'home':
-        return <HomePage user={user} onNavigate={setCurrentPage} />
+        return <HomePage user={user} onNavigate={setCurrentPage} blink={blink} />
       case 'discovery':
         return <RecipeDiscoveryPage user={user} />
       case 'planner':
@@ -97,7 +92,7 @@ function App() {
       case 'profile':
         return <ProfilePage user={user} />
       default:
-        return <HomePage user={user} onNavigate={setCurrentPage} />
+        return <HomePage user={user} onNavigate={setCurrentPage} blink={blink} />
     }
   }
 
